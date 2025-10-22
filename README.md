@@ -62,9 +62,9 @@ Each item includes **context** (ASR transcription), **question** (text), and **a
 
 | Dataset                | Exact Match (EM) | F1 Score |
 |------------------------|------------------|----------|
-| Standard (WER22)       | **51.94%**       | **64.89%** |
-| WER44 (Moderate Noise) | 10.11%           | 19.89%   |
-| WER54 (High Noise)     | 6.75%            | 15.43%   |
+| Standard (WER22)       | **51.83%**       | **64.57%** |
+| WER44 (Moderate Noise) | 10.20%           | 19.41%   |
+| WER54 (High Noise)     | 6.64%            | 15.42%   |
 
 **Insight:** Clean ASR text yields strong performance; higher WER severely degrades span extraction accuracy—consistent with the Spoken SQuAD study.
 

@@ -1,91 +1,91 @@
-🧠 Spoken SQuAD – BERT-Based Extractive Question Answering
-📘 Overview
+# Spoken SQuAD – BERT-Based Extractive Question Answering
 
-This project fine-tunes a BERT-based question answering (QA) model on the Spoken SQuAD dataset to evaluate its performance on noisy ASR-transcribed data.
-The main objective is to analyze how automatic speech recognition (ASR) errors and background noise affect the model’s comprehension and extraction capabilities.
+## Overview
+This project fine-tunes a **BERT-based question answering (QA)** model on the **Spoken SQuAD** dataset to analyze robustness under **ASR (Automatic Speech Recognition) errors** and increasing **noise** levels.
 
-The pipeline includes:
+Pipeline:
+- Load and align Spoken SQuAD datasets (clean and noisy WER sets)
+- Tokenize question–context pairs with sliding windows
+- Fine-tune **bert-base-uncased** for extractive QA
+- Evaluate using **Exact Match (EM)** and **F1** scores
 
-Preparing and aligning the Spoken SQuAD dataset.
+Reference dataset: [Chia-Hsuan-Lee/Spoken-SQuAD](https://github.com/Chia-Hsuan-Lee/Spoken-SQuAD)
 
-Tokenizing context–question pairs using sliding windows.
+---
 
-Fine-tuning BERT (bert-base-uncased) on clean and noisy transcriptions.
+## Dataset Information
 
-Evaluating robustness across increasing WER (Word Error Rate) levels.
+**Source:** SQuAD texts converted to speech (Google TTS) and transcribed with CMU Sphinx.
 
-📂 Dataset Information
+| Split            | Description        | Size    | Avg. WER |
+|------------------|--------------------|---------|----------|
+| Train            | Clean ASR          | 37,111  | 22.77%   |
+| Test (WER22)     | Baseline ASR       | 5,351   | 22.73%   |
+| WER44            | White noise (V1)   | 17,841  | 44%      |
+| WER54            | White noise (V2)   | 17,841  | 54%      |
 
-Dataset: Spoken SQuAD
+Each item includes **context** (ASR transcription), **question** (text), and **answer** (span indices).
 
-Source: Text from SQuAD converted to speech using Google TTS and transcribed via CMU Sphinx.
+---
 
-Split	Description	Size	Avg. WER
-Train	Clean transcriptions	37,111	22.77%
-Test (WER22)	Baseline ASR	5,351	22.73%
-WER44	White noise V1	17,841	44%
-WER54	White noise V2	17,841	54%
+## Model & Setup
 
-Each entry contains:
+- **Model:** `BertForQuestionAnswering` (Hugging Face, `bert-base-uncased`)
+- **Tokenizer:** `BertTokenizerFast`
+- **Frameworks:** PyTorch, Transformers, Accelerate
 
-context: ASR transcription of a spoken passage
+### Training Configuration
 
-question: text-based query
+| Parameter                | Value        |
+|--------------------------|--------------|
+| Optimizer                | AdamW        |
+| Learning Rate            | 2e-5         |
+| Scheduler                | Linear warmup/decay |
+| Epochs                   | 5            |
+| Batch Size               | 8            |
+| Gradient Accumulation    | 4 steps      |
+| Max Sequence Length      | 384          |
+| Stride                   | 128          |
 
-answer: answer span within the context
+**Loss:** Cross-entropy over start/end positions.  
+**Progress:** Tracked with `tqdm` per epoch.
 
-⚙️ Model Architecture
+---
 
-Base Model: BertForQuestionAnswering (bert-base-uncased)
+## Evaluation Metrics
 
-Tokenizer: BertTokenizerFast
+- **Exact Match (EM):** exact span equality after normalization  
+- **F1:** token-level overlap  
+- **Normalization:** lowercasing, punctuation/articles removal, whitespace fix
 
-Framework: PyTorch + Hugging Face Transformers
+### Results
 
-Device Handling: Managed via Accelerator (supports GPU/mixed precision)
+| Dataset                | Exact Match (EM) | F1 Score |
+|------------------------|------------------|----------|
+| Standard (WER22)       | **51.94%**       | **64.89%** |
+| WER44 (Moderate Noise) | 10.11%           | 19.89%   |
+| WER54 (High Noise)     | 6.75%            | 15.43%   |
 
-🧩 Training Configuration
-Parameter	Value
-Optimizer	AdamW
-Learning Rate	2e-5
-Scheduler	Linear decay with warmup
-Epochs	5
-Batch Size	8
-Gradient Accumulation	4 steps
-Max Sequence Length	384
-Stride	128
+**Insight:** Clean ASR text yields strong performance; higher WER severely degrades span extraction accuracy—consistent with the Spoken SQuAD study.
 
-Loss Function: Cross-entropy between predicted and true start–end indices.
-Progress Tracking: Implemented via tqdm with epoch-level average loss reporting.
+---
 
-🧮 Evaluation Metrics
+## File Structure
+├── HW3_SpokenSQuAD_BERT.ipynb # Main notebook
+├── README.md # This file
+├── spoken_train-v1.1.json # Train set
+├── spoken_test-v1.1.json # Validation (WER22)
+├── spoken_test-v1.1_WER44.json # Validation (WER44)
+├── spoken_test-v1.1_WER54.json # Validation (WER54)
+├── model/ # Saved fine-tuned model
+└── tokenizer/ # Saved tokenizer
 
-Exact Match (EM): Percentage of predictions exactly matching the ground-truth span.
+---
 
-F1 Score: Token-level overlap between prediction and ground truth.
+## How to Run
 
-Normalization: Removes punctuation, lowercases, and ignores articles.
-
-📊 Results
-Dataset	Exact Match (EM)	F1 Score
-Standard (WER22)	51.94%	64.89%
-WER44	10.11%	19.89%
-WER54	6.75%	15.43%
-
-Insight:
-Performance on clean ASR text is strong, while noisy transcriptions significantly reduce comprehension accuracy—consistent with findings from the original Spoken SQuAD paper.
-
-🧱 File Structure
-├── HW3_SpokenSQuAD_BERT.ipynb     # Main notebook
-├── README.md                      # Project overview and documentation
-├── spoken_train-v1.1.json         # Training dataset
-├── spoken_test-v1.1.json          # Validation (WER22)
-├── spoken_test-v1.1_WER44.json    # Validation (WER44)
-├── spoken_test-v1.1_WER54.json    # Validation (WER54)
-├── model/                         # Saved fine-tuned model
-└── tokenizer/                     # Saved tokenizer
-
-🚀 How to Run
+### 1) Install Dependencies
+```bash
 pip install torch torchvision torchaudio
 pip install transformers accelerate fuzzywuzzy tqdm
 
@@ -93,9 +93,7 @@ pip install transformers accelerate fuzzywuzzy tqdm
 Open and execute all cells in: HW3_SpokenSQuAD_BERT.ipynb
 
 3️⃣ Evaluate Performance
-
-The notebook automatically evaluates:
-evaluate(model, val_dataset)          # Clean ASR text
-evaluate(model, val_dataset_wer44)    # Noisy ASR (WER44)
-evaluate(model, val_dataset_wer54)    # Noisy ASR (WER54)
+evaluate(model, val_dataset)          # WER22 (clean ASR)
+evaluate(model, val_dataset_wer44)    # WER44 (noisy ASR)
+evaluate(model, val_dataset_wer54)    # WER54 (noisy ASR)
 
